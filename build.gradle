@@ -1,0 +1,230 @@
+	task version() << {
+		logger.info(Logging.QUIET, "AUTO-DEP Version : ${project.VERSION}\n")
+	}
+	
+	// ===============================================================================
+	// 
+	// This is the key build file that controls automated build and deployment
+	// of ATG applications. This file should be modified by authorised personnel only.
+	// ===============================================================================
+
+	// ======================================================================================
+	// The purpose of this task is to process and generate the ATG configurations required for an environment.
+	//
+	// Scope: Public.
+	// ======================================================================================
+	task atg_process_config(dependsOn: [':platforms/atg:processATGConfig']) << {
+		logger.info(Logging.QUIET, "atg_process_config ended at " + new Date().toString() + "\n")
+	}
+	atg_process_config.description = "Generate ATG Configuration for the environments listed in Gradle.properties."
+
+
+	// ======================================================================================
+	// The purpose of this task is to build ATG applications. Before you run this task, 
+	// please review gradle.properties and ensure it has correct configurations.
+	//
+	// Scope: Public.
+	// ======================================================================================
+	task atg_build(dependsOn: [
+								':platforms/atg:prepareJBossSlots',
+								':platforms/atg:generateIISModJKConfig',
+								':platforms/atg:createLogPruner',
+								':platforms/atg:copyBuildInfo',
+								':platforms/atg:configureFireDaemonService',
+								':platforms/atg:auditBuild'
+	]) << 
+	{
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")
+	}
+	atg_build.description = "Build ATG JBoss Clusters for a Release"
+	
+	// ======================================================================================
+	// The purpose of this task is to build ATG applications. Before you run this task, 
+	// please review gradle.properties and ensure it has correct configurations.
+	//
+	// Scope: Public.
+	// ======================================================================================
+	task atg_build_config(dependsOn: [':platforms/atg:processATGConfig',
+									  ':platforms/atg:createReleaseDirectories',
+									  ':platforms/atg:copyAtgConfig',
+									  ':platforms/atg:createScriptsFolder',
+									  ':platforms/atg:configureFireDaemonService',
+									  ':platforms/atg:copyBuildInfo',
+									  ':platforms/atg:auditConfigBuild'
+									  ]) << 
+	{
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")
+	}
+	atg_build_config.description = "Build ATG Config for deployment"
+
+	// ======================================================================================
+	// The purpose of this task is to prepare a template release package for an environment.
+	// This task will copy the jboss files and folders to a release package in advance of the actual build.
+	// Thus it can save a significant amount of time during the actual build.
+	// 
+	// Scope: Public.
+	// ======================================================================================
+	task atg_pre_build_jboss(dependsOn: [				
+								':platforms/atg:makeJbossSlots'
+	]) << 
+	{
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")
+	}
+	atg_pre_build_jboss.description = "Prebuild JBoss a release"
+	
+	// ======================================================================================
+	// The purpose of this task is to build JON. Before you run this task, 
+	// please review gradle.properties and ensure it has correct configurations.
+	//
+	// Scope: Public.
+	// ======================================================================================
+	task jon_build(dependsOn: [
+							':platforms/atg:copyJONToRelease',
+							':platforms/atg:configureJON',
+							':platforms/atg:configureJONFireDaemonService',
+							':platforms/atg:createJonScripts',
+							':platforms/atg:copyBuildInfo'
+							]) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")
+	}
+	jon_build.description = "Build JON"
+
+
+
+	// ======================================================================================
+	// The purpose of this task is to deploy ATG applications to one or more servers in a server group.
+	// Before you run this task please review gradle.properties and ensure it has correct 
+	// configurations.
+	//
+	// This task expects four command line parameters. ODEnv, ODRelease, ODServerGroups and ODServers.
+	//
+	// ODEnv is the environment to which the release is to be deployed.
+	// ODRelease is the release to be deployed.	
+	// ODServerGroups is the servergroup
+	// ODServerGroups is a comma seperated list of servers within the specified server group.
+
+	//
+	// Example 1: >gradle atg_deploy_servers -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  -PODServers=SERVER_001	
+	// Example 2: >gradle atg_deploy_servers -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  -PODServers=SERVER_001,SERVER_002,SERVER_003
+	// Scope: Public.
+	// ======================================================================================
+	task atg_deploy_servers(dependsOn: [':platforms/atg:deployServers']) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")	
+	}
+	atg_deploy_servers.description = "Deploy a previously built ATG JBoss Cluster to a specific server"
+
+	// ======================================================================================
+	// The purpose of this task is to deploy ATG applications to all servers in one or more server groups.
+	// Before you run this task please review gradle.properties and ensure it has correct 
+	// configurations.
+	//
+	// This task expects three command line parameters. ODEnv, ODRelease, ODServerGroups.
+	//
+	// ODEnv is the environment to which the release is to be deployed.
+	// ODRelease is the release to be deployed.	
+	// ODServerGroups is a comma seperated list of server groups within the specified environment.
+
+	//
+	// Example 1: >gradle atg_deploy_groups -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  	
+	// Example 2: >gradle atg_deploy_groups -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront,ContentAdmin,LiveListings
+	// Scope: Public.
+	// ======================================================================================
+	task atg_deploy_groups(dependsOn: [':platforms/atg:deployGroups']) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")	
+	}
+	atg_deploy_groups.description = "Deploy a previously built ATG JBoss Cluster to a number of server groups"
+
+	// ======================================================================================
+	// The purpose of this task is to deploy JBoss Base to all servers in one or more application clusters.
+	// Before you run this task please review gradle.properties and ensure it has correct 
+	// configurations.
+	//
+	// This task expects three command line parameters. ODEnv, ODRelease, ODServerGroups.
+	//
+	// ODEnv is the environment to which the release is to be deployed.
+	// ODRelease is the release to be deployed.	
+	// ODServerGroups is a comma seperated list of server groups within the specified environment.
+
+	//
+	// Example 1: >gradle atg_deploy_jboss -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  	
+	// Example 2: >gradle atg_deploy_jboss -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront,ContentAdmin,LiveListings
+	// Scope: Public.
+	// ======================================================================================
+	task atg_deploy_jboss_base(dependsOn: [':platforms/atg:deployJbossBase']) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")	
+	}
+	atg_deploy_jboss_base.description = "Deploy JBoss Base to a number of application clusters"
+
+
+	// ======================================================================================
+	// The purpose of this task is to deploy ATG applications to all servers in one or more server groups.
+	// Before you run this task please review gradle.properties and ensure it has correct 
+	// configurations.
+	//
+	// This task expects three command line parameters. ODEnv, ODRelease, ODServerGroups.
+	//
+	// ODEnv is the environment to which the release is to be deployed.
+	// ODRelease is the release to be deployed.	
+	// ODServerGroups is a comma seperated list of server groups within the specified environment.
+
+	//
+	// Example 1: >gradle atg_deploy_apps -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  	
+	// Example 2: >gradle atg_deploy_apps -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront,ContentAdmin,LiveListings
+	// Scope: Public.
+	// ======================================================================================
+	task atg_deploy_apps(dependsOn: [':platforms/atg:deployApps']) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")	
+	}
+	atg_deploy_apps.description = "Deploy a previously built ATG JBoss Cluster to a number of server groups"
+
+
+	// ======================================================================================
+	// The purpose of this task is to deploy ATG configuration to a cluster.
+	// This task expects three command line parameters. ODEnv, ODRelease, ODServerGroups.
+	//
+	// ODEnv is the environment to which the release is to be deployed.
+	// ODRelease is the release to be deployed.	
+	// ODServerGroups is a comma seperated list of cluster names within the specified environment.
+
+	// Example 1: >gradle atg_deploy_config -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  	
+	// Example 2: >gradle atg_deploy_config -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront,ContentAdmin,LiveListings
+	// Scope: Public.
+	// ======================================================================================
+	task atg_deploy_config(dependsOn: [':platforms/atg:deployConfig']) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")	
+	}
+	atg_deploy_config.description = "Deploy a previously prepared ATG configuration files to a number of clusters."
+
+
+	// ======================================================================================
+	// The purpose of this task is to deploy JON all servers in one or more application clusters.
+	// Before you run this task please review gradle.properties and ensure it has correct 
+	// configurations.
+	//
+	// This task expects three command line parameters. ODEnv, ODRelease, ODServerGroups.
+	//
+	// ODEnv is the environment to which the release is to be deployed.
+	// ODRelease is the release to be deployed.	
+	// ODServerGroups is a comma seperated list of server groups within the specified environment.
+
+	//
+	// Example 1: >gradle jon_deploy -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront  	
+	// Example 2: >gradle jon_deploy -PEnv=NFT -PODRelease=RELEASE_LABEL_001 -PODServerGroups=LiveStoreFront,ContentAdmin,LiveListings
+	// Scope: Public.
+	// ======================================================================================
+	task jon_deploy(dependsOn: [':platforms/atg:deployJon']) << {
+		logger.info(Logging.QUIET, "Build Ended at " + new Date().toString() + "\n")	
+	}
+	jon_deploy.description = "Deploy JBoss Base to a number of application clusters"
+
+
+	// ======================================
+	// Convert the Audit Log CSV file to XML
+	// ======================================
+	task csv2xml() << {
+		def converter=new com.emtalent.common.Csv2Xml()
+		converter.convert(project.CSV,project.XML)
+	}
+	csv2xml.description = "Convert the auditlog CSV file to an XML file."
+	
+	

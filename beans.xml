@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+ 
+<beans>
+	<bean name="initializer" class="com.emtalent.atg.Initializer" singleton="true"/>
+	<bean name="xmlValidator" class="com.emtalent.common.XMLValidator" singleton="true"/>
+	<bean name="bindingsParser" class="com.emtalent.common.BindingsParser" singleton="true"/>
+	<bean name="templateEngine" class="com.emtalent.common.TemplateEngine" singleton="true"/>
+	<bean name="releaseManager" class="com.emtalent.atg.ReleaseManager" singleton="true">
+		<property name="templateEngine">
+			<ref bean="templateEngine"/>
+		</property>
+	</bean>
+	<bean name="jbossManager" class="com.emtalent.atg.JBossManager" singleton="true">
+		<property name="bindingsParser">
+			<ref bean="bindingsParser"/>
+		</property>
+		<property name="templateEngine">
+			<ref bean="templateEngine"/>
+		</property>
+		<property name="applicationsXmlParser">
+			<ref bean="applicationsXmlParser"/>
+		</property>
+	</bean>
+  <bean name="jonManager" class="com.emtalent.atg.JONManager" singleton="true">
+    <property name="bindingsParser">
+      <ref bean="bindingsParser"/>
+    </property>
+    <property name="templateEngine">
+      <ref bean="templateEngine"/>
+    </property>
+  </bean>  
+  <bean name="batchManager" class="com.emtalent.atg.BatchManager" singleton="true">
+    <property name="bindingsParser">
+      <ref bean="bindingsParser"/>
+    </property>
+    <property name="templateEngine">
+      <ref bean="templateEngine"/>
+    </property>
+  </bean> 
+  
+	<bean name="fireDaemonManager" class="com.emtalent.atg.FireDaemonManager" singleton="true">
+		<property name="bindingsParser">
+			<ref bean="bindingsParser"/>
+		</property>
+		<property name="templateEngine">
+			<ref bean="templateEngine"/>
+		</property>
+	</bean>
+	<bean name="openDeployManager" class="com.emtalent.atg.OpenDeployManager" singleton="true">
+		<property name="templateEngine">
+			<ref bean="templateEngine"/>
+		</property>
+	</bean>
+	<bean name="iISConfigGenerator" class="com.emtalent.atg.IISConfigGenerator" singleton="true">
+		<property name="bindingsParser">
+			<ref bean="bindingsParser"/>
+		</property>
+		<property name="applicationsXmlParser">
+			<ref bean="applicationsXmlParser"/>
+		</property>
+	</bean>
+	<bean name="applicationsXmlParser" class="com.emtalent.atg.ApplicationsXmlParser" singleton="true">
+		<constructor-arg type="java.lang.String">
+			<value>platforms/atg/config/applications.xml</value>
+		</constructor-arg>
+	</bean>
+	<bean name="atgConfigGenerator" class="com.emtalent.atg.AtgConfigGenerator" singleton="true"/>
+  
+  <bean name="atgConfigProcessor" class="com.emtalent.atg.AtgConfigProcessor" singleton="true"/>
+  <bean name="atgGlobalConfigProcessor" class="com.emtalent.atg.AtgGlobalConfigProcessor" singleton="true"/>
+
+  <bean name="auditManager" class="com.emtalent.common.AuditManager" singleton="true">
+		<constructor-arg type="java.lang.String">
+			<value>DATE,ENVIRONMENT,APPLICATION,RFC,AUTODEP_VERSION,ATG_CONFIG_TFS_PATH,ATG_SIT_CONFIG_PATH,RELEASE_OUTPUT,RELEASE_INPUT,ACTION</value>
+		</constructor-arg>
+		<constructor-arg type="java.lang.String">
+			<value>auditlogs/AUTODEP-AUDIT.CSV</value>
+		</constructor-arg>
+	</bean>
+	<bean name="auditMap" class="java.util.HashMap" singleton="true"/>
+  
+	<bean name="atgAuditor" class="com.emtalent.atg.AtgAuditor" singleton="true"/>
+  
+  <bean name="atgCustomConfigManager" class="com.emtalent.atg.AtgCustomConfigManager" singleton="true"/>
+
+  <bean name="environmentNavigator" class="com.emtalent.atg.EnvironmentNavigator" singleton="true"/>
+  
+</beans>
